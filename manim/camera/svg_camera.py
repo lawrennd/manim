@@ -10,8 +10,6 @@ __all__ = ["SVGCamera"]
 from collections.abc import Iterable
 from typing import TYPE_CHECKING, Any
 
-import numpy as np
-
 from .. import config, logger
 
 if TYPE_CHECKING:
