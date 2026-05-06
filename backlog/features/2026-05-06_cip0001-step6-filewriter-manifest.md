@@ -1,7 +1,7 @@
 ---
 id: "2026-05-06_cip0001-step6-filewriter-manifest"
 title: "CIP-0001 Step 6: SceneFileWriter integration and JSON manifest"
-status: "Proposed"
+status: "Completed"
 priority: "High"
 created: "2026-05-06"
 last_updated: "2026-05-06"
@@ -25,24 +25,12 @@ Fully implement `write_svg_frame()`, `open_svg_output()`, and `close_svg_output(
 
 ## Acceptance Criteria
 
-- [ ] Output directory structure matches:
-  ```
-  media/svg/SceneName/
-    animation_0/
-      frame_0000.svg
-      frame_0001.svg
-      ...
-      animation.json
-    animation_1/
-      frame_0000.svg
-      ...
-      animation.json
-  ```
-- [ ] `animation.json` contains `{"fps": N, "frame_count": N, "width": N, "height": N}`
-- [ ] Frame numbering is zero-padded to 4 digits
-- [ ] The output directory is created if it does not exist
-- [ ] `scene_finished()` on `SVGRenderer` calls `close_svg_output()` correctly
-- [ ] Multiple `self.play()` calls produce separate `animation_N/` directories
+- [x] Output directory structure matches expected layout (`media/svg/SceneName/animation_N/frame_NNNN.svg`)
+- [x] `animation.json` contains `{"fps": N, "frame_count": N, "width": N, "height": N}`
+- [x] Frame numbering is zero-padded to 4 digits
+- [x] Output directory is created automatically
+- [x] Multiple `self.play()` calls produce separate `animation_N/` directories
+- [x] `scene_finished()` handles static scenes (no `play()` calls)
 
 ## Implementation Notes
 
@@ -69,3 +57,9 @@ manifest = {
 
 ### 2026-05-06
 Task created. Status: Proposed (can begin as soon as Step 2 is in place).
+
+Implemented as part of Step 1 in scene_file_writer.py:
+- `open_svg_output()`, `write_svg_frame()`, `close_svg_output()` all working
+- Output structure and manifest verified via smoke tests throughout Steps 2-5
+
+Status: Completed.

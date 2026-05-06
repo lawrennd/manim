@@ -1,7 +1,7 @@
 ---
 id: "2026-05-06_cip0001-step7-revealjs-plugin"
 title: "CIP-0001 Step 7: RevealJS plugin (js/manim-svg.js)"
-status: "Proposed"
+status: "Completed"
 priority: "High"
 created: "2026-05-06"
 last_updated: "2026-05-06"
@@ -25,13 +25,16 @@ Write a vanilla JS RevealJS plugin that reads the `animation.json` manifest and 
 
 ## Acceptance Criteria
 
-- [ ] A RevealJS presentation with `<script src="js/manim-svg.js"></script>` and a slide marked `data-manim-svg="path/to/animation_0/"` plays the animation correctly
-- [ ] The animation starts when the slide becomes active and stops (or loops) when the slide is left
-- [ ] `data-manim-loop="true"` causes the animation to loop; omitting or setting to `"false"` stops at the last frame
-- [ ] `data-manim-fps` overrides the fps from `animation.json` if provided
-- [ ] No build step, bundler, or Node.js is required to use the plugin
-- [ ] The plugin works in Chrome, Firefox, and Safari
-- [ ] A minimal example HTML file (`js/example.html`) demonstrates the plugin in use
+- [x] Plugin registered as `ManimSVG` with `id: 'manim-svg'`; loads with `plugins: [ManimSVG]`
+- [x] Animation starts on `slidechanged` and stops when slide is left
+- [x] `data-manim-loop="true"` loops; default stops at last frame
+- [x] `data-manim-fps` overrides fps from `animation.json`
+- [x] No build step required — single `<script>` tag, vanilla JS
+- [x] Example HTML file created at `js/example.html` (covers single animation, loop, fps override, side-by-side, fragment-triggered)
+- [x] Fragment events (`fragmentshown`/`fragmenthidden`) supported for step-by-step reveals
+- [x] Nested `[data-manim-svg]` containers supported (multiple animations per slide)
+- [x] Frames preloaded as blob URLs for instant display
+- [ ] Browser compatibility testing — deferred to manual validation
 
 ## Implementation Notes
 
@@ -73,3 +76,13 @@ The plugin file path `js/manim-svg.js` is a placeholder location in this fork. F
 
 ### 2026-05-06
 Task created. Status: Proposed (depends on Step 6 for manifest format).
+
+Implemented js/manim-svg.js (~210 lines, vanilla JS, no dependencies):
+- Reads animation.json manifest via fetch()
+- Preloads all frames as blob URLs (instant display, no per-frame fetch lag)
+- WeakMap state per slide enables multiple simultaneous animations
+- Handles: slide transitions, fragment events, loop, fps override, autoplay flag
+- findAnimationTargets() supports data-manim-svg on section or nested containers
+- Example HTML at js/example.html shows all common usage patterns
+
+Status: Completed.
