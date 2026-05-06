@@ -73,14 +73,24 @@ class SVGCamera:
     def reset(self) -> None:
         """Create a fresh SVG drawing for the next frame.
 
-        The ``viewBox`` spans Manim's coordinate range so that path coordinates
-        can be emitted in Manim space (with y negated for the y-down flip).
+        Coordinate system
+        ~~~~~~~~~~~~~~~~~
+        The SVG ``viewBox`` spans Manim's x-range (centred at 0) and the
+        equivalent y-range.  Path coordinates are emitted with ``y`` negated
+        (``-y``) so that Manim's y-up convention maps correctly to SVG's y-down
+        convention: positive-y Manim objects appear above centre in the browser.
+
+        This is equivalent to wrapping all paths in
+        ``<g transform="scale(1,-1)">`` but avoids the extra group element.
+
+        A solid background rectangle is added first so the scene has the
+        correct background colour in any browser context (SVG default is
+        transparent).
         """
         import svgwrite
 
-        # viewBox in SVG y-down space: y runs from -frame_height/2 to frame_height/2
-        # but we negate y in our path coordinates, so the top of the screen is
-        # -frame_height/2 and the bottom is +frame_height/2 (SVG convention).
+        bg_color: str = config["background_color"].to_hex()
+
         self._current_drawing = svgwrite.Drawing(
             size=(f"{self.pixel_width}px", f"{self.pixel_height}px"),
             viewBox=(
@@ -89,6 +99,15 @@ class SVGCamera:
                 f"{self.frame_width} "
                 f"{self.frame_height}"
             ),
+        )
+
+        # Background rectangle covering the full viewBox.
+        self._current_drawing.add(
+            self._current_drawing.rect(
+                insert=(-self.frame_width / 2, -self.frame_height / 2),
+                size=(self.frame_width, self.frame_height),
+                fill=bg_color,
+            )
         )
 
     def get_drawing(self) -> Any:

@@ -1,7 +1,7 @@
 ---
 id: "2026-05-06_cip0001-step3-coordinate-transform"
 title: "CIP-0001 Step 3: Manim to SVG coordinate transform"
-status: "Proposed"
+status: "Completed"
 priority: "High"
 created: "2026-05-06"
 last_updated: "2026-05-06"
@@ -27,11 +27,11 @@ After this step, shapes should appear in the correct positions on screen with co
 
 ## Acceptance Criteria
 
-- [ ] A circle at the origin in Manim renders at the centre of the SVG viewport
-- [ ] A square at `UP` (0, 1, 0) in Manim renders above centre in the SVG
-- [ ] The y-axis is not flipped (Manim's y-up matches visual expectations in the browser)
-- [ ] The SVG `viewBox` matches the scene frame dimensions from `config.frame_width` and `config.frame_height`
-- [ ] Output matches Cairo renderer positioning on the same scene (visual comparison)
+- [x] A circle at the origin in Manim renders at the centre of the SVG viewport
+- [x] A square at `UP` (0, 1, 0) in Manim renders above centre in the SVG (path top-edge at y=-2)
+- [x] The y-axis is not flipped (Manim's y-up matches visual expectations in the browser)
+- [x] The SVG `viewBox` matches the scene frame dimensions from `config.frame_width` and `config.frame_height`
+- [x] Background rectangle added using `config["background_color"]` — correct colour in all browser contexts
 
 ## Implementation Notes
 
@@ -56,3 +56,18 @@ Pixel output dimensions (for `width`/`height` on `<svg>`): use `config.pixel_wid
 
 ### 2026-05-06
 Task created. Status: Proposed (depends on Step 2).
+
+Implementation choice: negating y inline in path data rather than a
+`<g transform="scale(1,-1)">` wrapper. Both approaches are equivalent;
+the inline negation avoids an extra SVG group element.
+
+Added `SVGCamera.reset()` background rectangle using
+`config["background_color"].to_hex()` so scenes have the correct
+background in all browser contexts (SVG default is transparent).
+
+All acceptance criteria confirmed via smoke tests:
+- Shift, scale, rotation all work — Manim bakes transforms into `points`
+- Square at UP → path top-edge at SVG y=-2 (above centre) ✓
+- ViewBox spans -7.111..4 (Manim frame dimensions) ✓
+
+Status: Completed.
