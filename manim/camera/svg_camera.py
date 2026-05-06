@@ -152,9 +152,12 @@ class SVGCamera:
 
     def _capture_mobject(self, mob: Mobject) -> None:
         """Dispatch a single mobject to the appropriate render method."""
+        from ..mobject.types.image_mobject import AbstractImageMobject
         from ..mobject.types.vectorized_mobject import VMobject
 
-        if isinstance(mob, VMobject):
+        if isinstance(mob, AbstractImageMobject):
+            self._render_image_mobject(mob)
+        elif isinstance(mob, VMobject):
             self._render_vmobject(mob)
         else:
             logger.debug(
@@ -162,6 +165,67 @@ class SVGCamera:
                 "(will be handled in a future CIP-0001 step)",
                 type(mob).__name__,
             )
+
+    # ------------------------------------------------------------------
+    # ImageMobject rendering
+    # ------------------------------------------------------------------
+
+    def _render_image_mobject(self, image_mob: Any) -> None:
+        """Render an ImageMobject as a base64-encoded PNG ``<image>`` element.
+
+        Parameters
+        ----------
+        image_mob
+            An :class:`.ImageMobject` (or any ``AbstractImageMobject``).
+
+        Notes
+        -----
+        ``ImageMobject.pixel_array`` is a uint8 RGBA numpy array of shape
+        ``(H, W, 4)``.  We encode it as an in-memory PNG and embed it via a
+        ``data:image/png;base64,...`` data URI so no external files are needed.
+
+        The bounding box comes from ``image_mob.points``, which stores the
+        four corner points in Manim space::
+
+            points[0] = top-left
+            points[1] = top-right
+            points[2] = bottom-left
+            points[3] = bottom-right
+
+        In SVG y-down space (with y negated), the top-left insert is
+        ``(points[0][0], -points[0][1])`` and the size is
+        ``(width, height)``.
+        """
+        import base64
+        import io
+
+        from PIL import Image as PILImage
+
+        pixel_array = image_mob.pixel_array
+        if pixel_array is None or pixel_array.size == 0:
+            return
+
+        # Encode pixel_array as PNG in memory.
+        pil_img = PILImage.fromarray(pixel_array.astype("uint8"), mode="RGBA")
+        buf = io.BytesIO()
+        pil_img.save(buf, format="PNG")
+        b64 = base64.b64encode(buf.getvalue()).decode("ascii")
+        href = f"data:image/png;base64,{b64}"
+
+        # Bounding box from corner points (Manim space, y negated for SVG).
+        points = image_mob.points
+        x_left = float(points[0][0])
+        y_top_svg = float(-points[0][1])  # negate y: Manim top → SVG top
+        w = float(image_mob.width)
+        h = float(image_mob.height)
+
+        img_el = self._current_drawing.image(
+            href=href,
+            insert=(x_left, y_top_svg),
+            size=(w, h),
+            preserveAspectRatio="none",
+        )
+        self._current_drawing.add(img_el)
 
     # ------------------------------------------------------------------
     # VMobject rendering

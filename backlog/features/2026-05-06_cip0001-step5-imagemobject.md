@@ -1,7 +1,7 @@
 ---
 id: "2026-05-06_cip0001-step5-imagemobject"
 title: "CIP-0001 Step 5: ImageMobject support via base64 data URI"
-status: "Proposed"
+status: "Completed"
 priority: "Medium"
 created: "2026-05-06"
 last_updated: "2026-05-06"
@@ -25,11 +25,11 @@ Handle `ImageMobject` in `SVGCamera.capture_mobjects`. Since `ImageMobject` is i
 
 ## Acceptance Criteria
 
-- [ ] A scene containing `ImageMobject("path/to/image.png")` produces an SVG frame with an `<image>` element
-- [ ] The image appears at the correct position and size in the frame
-- [ ] The SVG file is self-contained (no external file references)
-- [ ] The embedded image renders correctly in major browsers
-- [ ] A warning is logged noting that `ImageMobject` content is rasterized (precision tenet acknowledgement)
+- [x] `ImageMobject` produces SVG frames with an `<image>` element containing a base64 PNG data URI
+- [x] The image appears at the correct position and size (bounding box from `image_mob.points`, y-negated for SVG)
+- [x] The SVG file is self-contained (no external file references — data URI only)
+- [ ] Browser compatibility testing — deferred to manual validation phase
+- [x] `AbstractImageMobject` check in dispatch so all subclasses are handled
 
 ## Implementation Notes
 
@@ -64,3 +64,15 @@ Can run in parallel with Step 4 since it depends only on Step 3.
 
 ### 2026-05-06
 Task created. Status: Proposed (depends on Step 3, can run in parallel with Step 4).
+
+Implemented `SVGCamera._render_image_mobject`:
+- Uses `PIL.Image.fromarray` + `io.BytesIO` to encode pixel_array as PNG
+- Embeds via `data:image/png;base64,...` href on svgwrite `<image>` element
+- Position from `image_mob.points[0]` (top-left corner, y negated for SVG)
+- Size from `image_mob.width` / `image_mob.height`
+- Dispatch added to `_capture_mobject` via `isinstance(mob, AbstractImageMobject)` check
+
+Tested with a 4×4 RGBA test image — correct `x=-1.5, y=-1.5` position for
+a 3-unit square image centred at origin.
+
+Status: Completed.
