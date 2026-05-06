@@ -205,6 +205,11 @@ class Scene:
             if renderer is None:
                 renderer = OpenGLRenderer()
 
+        if config.renderer == RendererType.SVG and renderer is None:
+            from ..renderer.svg_renderer import SVGRenderer
+
+            renderer = SVGRenderer()
+
         if renderer is None:
             self.renderer: CairoRenderer | OpenGLRenderer = CairoRenderer(
                 # TODO: Is it a suitable approach to make an instance of
@@ -470,7 +475,7 @@ class Scene:
                 family_members.extend(mob.get_family())
             return family_members
         else:
-            assert config.renderer == RendererType.CAIRO
+            assert config.renderer in (RendererType.CAIRO, RendererType.SVG)
             return extract_mobject_family_members(
                 self.mobjects,
                 use_z_index=self.renderer.camera.use_z_index,
@@ -505,7 +510,7 @@ class Scene:
             self.remove(*new_meshes)  # type: ignore[arg-type]
             self.meshes += new_meshes
         else:
-            assert config.renderer == RendererType.CAIRO
+            assert config.renderer in (RendererType.CAIRO, RendererType.SVG)
             new_and_foreground_mobjects: list[Mobject] = [
                 *mobjects,  # type: ignore[list-item]
                 *self.foreground_mobjects,
@@ -565,7 +570,7 @@ class Scene:
             )
             return self
         else:
-            assert config.renderer == RendererType.CAIRO
+            assert config.renderer in (RendererType.CAIRO, RendererType.SVG)
             for list_name in "mobjects", "foreground_mobjects":
                 self.restructure_mobjects(mobjects, list_name, False)
             return self

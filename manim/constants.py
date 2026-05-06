@@ -273,6 +273,7 @@ class RendererType(Enum):
 
     CAIRO = "cairo"  #: A renderer based on the cairo backend.
     OPENGL = "opengl"  #: An OpenGL-based renderer.
+    SVG = "svg"  #: A renderer that exports per-frame SVG files for web embedding.
 
 
 class LineJointType(Enum):

@@ -14,6 +14,7 @@ __all__ = [
     "is_png_format",
     "is_webm_format",
     "is_mov_format",
+    "is_svg_format",
     "write_to_movie",
     "ensure_executable",
 ]
@@ -33,6 +34,7 @@ if TYPE_CHECKING:
     from ..scene.scene_file_writer import SceneFileWriter
 
 from manim import __version__, config, logger
+from manim.constants import RendererType
 
 from .. import console
 
@@ -107,6 +109,20 @@ def is_png_format() -> bool:
     return val
 
 
+def is_svg_format() -> bool:
+    """
+    Determines if the SVG renderer is active, producing per-frame SVG output.
+
+    Returns
+    -------
+    class:`bool`
+        ``True`` if the renderer is set to SVG.
+
+    """
+    val: bool = config["renderer"] == RendererType.SVG
+    return val
+
+
 def write_to_movie() -> bool:
     """
     Determines from config if the output is a video format such as mp4 or gif, if the --format is set as 'png'
@@ -118,7 +134,7 @@ def write_to_movie() -> bool:
         ``True`` if the output should be written in a movie format
 
     """
-    if is_png_format():
+    if is_png_format() or is_svg_format():
         return False
     return (
         config["write_to_movie"]

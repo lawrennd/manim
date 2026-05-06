@@ -74,6 +74,9 @@ jupyterlab = [
     "jupyterlab>=4.3.4",
     "notebook>=7.3.2",
 ]
+svg = [
+    "svgwrite>=1.4",
+]
 
 [dependency-groups]
 dev = [

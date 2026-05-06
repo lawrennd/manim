@@ -41,6 +41,7 @@ from ..utils.file_ops import (
     guarantee_existence,
     is_gif_format,
     is_png_format,
+    is_svg_format,
     modify_atime,
     write_to_movie,
 )
@@ -215,6 +216,14 @@ class SceneFileWriter:
                 set_file_logger(
                     scene_name=scene_name, module_name=module_name, log_dir=log_dir
                 )
+
+        if is_svg_format() and config["media_dir"]:
+            self.svg_output_dir = guarantee_existence(
+                config.get_dir("media_dir") / "svg" / scene_name,
+            )
+            self._svg_animation_index: int = 0
+            self._svg_frame_count: int = 0
+            self._svg_current_dir: Path | None = None
 
     def finish_last_section(self) -> None:
         """Delete current section if it is empty."""
@@ -902,3 +911,59 @@ class SceneFileWriter:
         """Prints the "File Ready" message to STDOUT."""
         config["output_file"] = file_path
         logger.info("\nFile ready at %(file_path)s\n", {"file_path": f"'{file_path}'"})
+
+    # ------------------------------------------------------------------
+    # SVG output methods (CIP-0001)
+    # ------------------------------------------------------------------
+
+    def open_svg_output(self) -> None:
+        """Open a new SVG animation directory for the current play() call."""
+        if not is_svg_format() or config["dry_run"]:
+            return
+        self._svg_current_dir = guarantee_existence(
+            self.svg_output_dir / f"animation_{self._svg_animation_index}",
+        )
+        self._svg_frame_count = 0
+
+    def write_svg_frame(self, drawing: Any, num_frames: int = 1) -> None:
+        """Write one SVG frame to the current animation directory.
+
+        Parameters
+        ----------
+        drawing
+            An ``svgwrite.Drawing`` instance representing the current frame.
+        num_frames
+            How many times to write this frame (used for frozen frames).
+        """
+        if not is_svg_format() or config["dry_run"] or self._svg_current_dir is None:
+            return
+        for _ in range(num_frames):
+            frame_path = (
+                self._svg_current_dir / f"frame_{self._svg_frame_count:04d}.svg"
+            )
+            drawing.saveas(str(frame_path))
+            self._svg_frame_count += 1
+
+    def close_svg_output(self) -> None:
+        """Write the animation manifest and advance the animation index."""
+        if not is_svg_format() or config["dry_run"] or self._svg_current_dir is None:
+            return
+        manifest = {
+            "fps": config["frame_rate"],
+            "frame_count": self._svg_frame_count,
+            "width": config["pixel_width"],
+            "height": config["pixel_height"],
+        }
+        (self._svg_current_dir / "animation.json").write_text(
+            json.dumps(manifest, indent=2),
+        )
+        logger.info(
+            "SVG animation %(idx)s: %(n)s frame(s) written to %(dir)s",
+            {
+                "idx": self._svg_animation_index,
+                "n": self._svg_frame_count,
+                "dir": self._svg_current_dir,
+            },
+        )
+        self._svg_animation_index += 1
+        self._svg_current_dir = None

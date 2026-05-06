@@ -1,7 +1,7 @@
 ---
 id: "2026-05-06_cip0001-step1-config-cli-stubs"
 title: "CIP-0001 Step 1: Config, CLI, and renderer stubs"
-status: "Ready"
+status: "Completed"
 priority: "High"
 created: "2026-05-06"
 last_updated: "2026-05-06"
@@ -56,3 +56,6 @@ Files to modify:
 
 ### 2026-05-06
 Task created. Status: Ready.
+Implemented and smoke-tested. Pipeline runs end-to-end: `Create(Square)` + `wait()`
+produces `animation_0/` and `animation_1/` directories each with SVG frames and
+`animation.json` manifest. Status: Completed.
