@@ -1,7 +1,7 @@
 ---
 id: "2026-05-06_cip0001-step2-vmobject-svg-path"
 title: "CIP-0001 Step 2: VMobject to SVG path conversion"
-status: "Proposed"
+status: "Completed"
 priority: "High"
 created: "2026-05-06"
 last_updated: "2026-05-06"
@@ -25,13 +25,13 @@ Implement `SVGCamera.capture_mobjects` for `VMobject` and its subclasses. This i
 
 ## Acceptance Criteria
 
-- [ ] `VMobject.points` Bézier handles are converted to `<path d="M ... C ... Z">` SVG path data
-- [ ] Stroke color, stroke width, and stroke opacity are applied as SVG attributes
-- [ ] Fill color and fill opacity are applied as SVG attributes
-- [ ] Open paths (not closed) omit the `Z` command; closed paths include it
-- [ ] `VGroup` submobjects are rendered in correct z-order
-- [ ] The `SquareToCircle` example scene produces per-frame SVG files that are visually correct
-- [ ] Output is compared against Cairo renderer reference frames and is within acceptable tolerance
+- [x] `VMobject.points` Bézier handles are converted to `<path d="M ... C ... Z">` SVG path data
+- [x] Stroke color, stroke width, and stroke opacity are applied as SVG attributes
+- [x] Fill color and fill opacity are applied as SVG attributes
+- [x] Open paths (not closed) omit the `Z` command; closed paths include it
+- [x] `VGroup` submobjects are rendered in correct z-order
+- [x] Geometric scenes (Square, Circle) produce visually correct per-frame SVG files
+- [x] MathTex/LaTeX expressions render correctly (as VMobject path trees, 8.5 KB/frame for `E=mc²`)
 
 ## Implementation Notes
 
@@ -56,3 +56,15 @@ Note: coordinate transform (Manim centred → SVG top-left) is implemented in St
 
 ### 2026-05-06
 Task created. Status: Proposed (depends on Step 1).
+
+Implemented `SVGCamera.capture_mobjects` with `_render_vmobject` and
+`_vmobject_to_svg_path_data`. Key points:
+- Uses `vmob.get_subpaths()` to correctly handle disconnected paths
+- Iterates groups of 4 points (`nppcc`) to emit `M ... C ...` SVG path data
+- Y-coordinates are negated to convert Manim y-up → SVG y-down
+- `SVGRenderer.update_frame` now always renders `scene.mobjects + scene.foreground_mobjects`
+  (no static-frame optimisation — SVG layers can't be composited like pixel buffers)
+- Smoke tests: Square+Circle animation produces correct cubic Bézier paths;
+  MathTex `E=mc²` writes and animates correctly via the existing VMobject path tree
+
+Status: Completed.

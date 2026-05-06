@@ -14,6 +14,7 @@ from typing import TYPE_CHECKING, Any
 
 from ..camera.svg_camera import SVGCamera
 from ..scene.scene_file_writer import SceneFileWriter
+from ..utils.iterables import list_update
 
 if TYPE_CHECKING:
     from ..animation.animation import Animation
@@ -86,12 +87,18 @@ class SVGRenderer:
         mobjects: Iterable[Mobject] | None = None,
         **kwargs: Any,
     ) -> None:
-        """Rebuild the current SVG drawing from the scene's mobjects."""
+        """Rebuild the current SVG drawing from the scene's mobjects.
+
+        Unlike :class:`.CairoRenderer`, the SVG renderer has no concept of a
+        static background layer, so it always renders all visible mobjects
+        (``scene.mobjects + scene.foreground_mobjects``). The ``mobjects``
+        parameter is accepted for API compatibility but ignored.
+        """
         if self.skip_animations:
             return
         self.camera.reset()
-        all_mobjects: Iterable[Mobject] = (
-            mobjects if mobjects is not None else scene.mobjects
+        all_mobjects: list[Mobject] = list_update(
+            scene.mobjects, scene.foreground_mobjects
         )
         self.camera.capture_mobjects(all_mobjects, **kwargs)
 
